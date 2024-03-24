@@ -51,7 +51,7 @@ app.get('/oauth2callback', async (req, res) => {
   const { code } = req.query;
   const { tokens } = await oAuth2Client.getToken(code);
   oAuth2Client.setCredentials(tokens);
-
+  console.log(tokens)
   // Store the tokens in the session
   req.session.tokens = tokens;
 const redirectHoho = /*'https://untangled-frontend.render.com/home'*/
@@ -60,9 +60,13 @@ process.env.REDIRECT_HOME
 });
 
 app.get('/user-info', async (req, res) => {
-  if (!req.session.tokens || !req.session.tokens.access_token) {
+  console.log(req.session.tokens, req.session.tokens.access_token);
+  /*if (!req.session.tokens || !req.session.tokens.access_token) {
+    console.log(req.session.tokens)
+    console.log(req.session.tokens.access_token)
     return res.status(401).send('User not authenticated');
   }
+  */
 
   oAuth2Client.setCredentials(req.session.tokens);
 
