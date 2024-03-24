@@ -21,6 +21,12 @@ app.use(cors({
     credentials: true, 
   }));
 
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', 'https://untangled-v2-frontendv2.onrender.com');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+  });
+
 const clientId = process.env.GOOGLE_CLIENT_ID;
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 const redirectUri = /*'https://untangled-server.render.com/oauth2callback'*/
