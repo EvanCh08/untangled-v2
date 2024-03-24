@@ -21,7 +21,7 @@ from flask import Flask, jsonify, request, send_from_directory
 import threading
 import time
 
-app = Flask(__name__, static_folder='client/build')
+app = Flask(__name__, static_folder="client/build")
 CORS(app) 
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
@@ -40,8 +40,6 @@ def serve(path):
         return send_from_directory(app.static_folder, path)
     else:
         return send_from_directory(app.static_folder, 'index.html')
-    
-    
 ### Main interaction loop ###
 def run(): 
     data = request.get_json()
