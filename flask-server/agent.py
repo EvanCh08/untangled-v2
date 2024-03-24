@@ -33,6 +33,7 @@ llm = ChatOpenAI(temperature=0, model=OPENAI_MODEL, api_key=OPENAI_API_KEY)
 persistent_memory = ConversationSummaryBufferMemory(llm=llm,memory_key="chat_history", return_messages=True, max_token_limit=500)
 
 @app.route("/agent", methods=["POST"])
+
 ### Main interaction loop ###
 def run(): 
     data = request.get_json()
