@@ -11,7 +11,7 @@
         "concurrently": "^7.6.0"
     },
     "dependencies": {
+        "express": "^4.19.1",
         "pm2": "^5.3.1"
     }
 }
- 
