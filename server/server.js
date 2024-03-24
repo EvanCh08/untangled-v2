@@ -61,12 +61,11 @@ process.env.REDIRECT_HOME
 
 app.get('/user-info', async (req, res) => {
   console.log(req.session.tokens, req.session.tokens.access_token);
-  /*if (!req.session.tokens || !req.session.tokens.access_token) {
+  if (!req.session.tokens || !req.session.tokens.access_token) {
     console.log(req.session.tokens)
     console.log(req.session.tokens.access_token)
     return res.status(401).send('User not authenticated');
   }
-  */
 
   oAuth2Client.setCredentials(req.session.tokens);
 
