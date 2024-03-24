@@ -49,21 +49,39 @@ app.get('/login', (req, res) => {
 
 app.get('/oauth2callback', async (req, res) => {
   const { code } = req.query;
-  const { tokens } = await oAuth2Client.getToken(code);
-  oAuth2Client.setCredentials(tokens);
-  console.log(tokens)
-  // Store the tokens in the session
-  req.session.tokens = tokens;
-const redirectHoho = /*'https://untangled-frontend.render.com/home'*/
-process.env.REDIRECT_HOME
-  res.redirect(redirectHoho)
+  try {
+    const { tokens } = await oAuth2Client.getToken(code);
+    req.session.tokens = tokens;
+    
+    // Manually save the session before redirecting
+    req.session.save(err => {
+      if (err) {
+        // handle error here, for example by logging it and sending an error response
+        console.error('Session save error:', err);
+        return res.status(500).send('Internal Server Error');
+      }
+      // Only redirect once the session has been saved successfully
+      res.redirect(process.env.REDIRECT_HOME);
+    });
+    
+  } catch (error) {
+    console.error('Error during OAuth2 callback', error);
+    res.status(500).send('Authentication error');
+  }
+  
+//   const { code } = req.query;
+//   const { tokens } = await oAuth2Client.getToken(code);
+//   oAuth2Client.setCredentials(tokens);
+//   // Store the tokens in the session
+//   req.session.tokens = tokens;
+// const redirectHoho = /*'https://untangled-frontend.render.com/home'*/
+// process.env.REDIRECT_HOME
+//   res.redirect(redirectHoho)
 });
 
 app.get('/user-info', async (req, res) => {
   console.log(req.session.tokens, req.session.tokens.access_token);
   if (!req.session.tokens || !req.session.tokens.access_token) {
-    console.log(req.session.tokens)
-    console.log(req.session.tokens.access_token)
     return res.status(401).send('User not authenticated');
   }
 
