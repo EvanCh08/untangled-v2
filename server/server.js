@@ -18,7 +18,8 @@ app.use(
     }),
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: "auto" },
+    cookie: { secure: "auto", sameSite: 'none' },
+    
   })
 );
 
@@ -26,6 +27,7 @@ app.use(
   cors({
     origin: [process.env.CORS_ORIGIN],
     credentials: true,
+    
   })
 );
 
