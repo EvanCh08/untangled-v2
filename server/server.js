@@ -100,7 +100,7 @@ app.get("/oauth2callback", async (req, res) => {
 });
 
 app.get("/user-info", async (req, res) => {
-  if (!req.session.tokens) {
+  if (!req.session.tokens || !req.session.tokens.access_token) {
     return res.status(401).send("User not authenticated");
   }
 
