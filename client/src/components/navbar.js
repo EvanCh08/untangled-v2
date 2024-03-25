@@ -12,27 +12,33 @@ import {
 } from "lucide-react";
 import gans from "./images/Evan.jpg";
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
 
 export default function NavBar( { setIsNavOpen }) {
   const [isOpen, setIsOpen] = useState(false);
   const [userInfo, setUserInfo] = useState({ name: '', photo: '' });
 
+  const location = useLocation(); // Hook from react-router-dom to access the current location
+  
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const { data } = await axios.get(/*"https://untangled-server.render.com/user-info"*/process.env.REACT_APP_USER_INFO || 'http://localhost:3001/user-info', { withCredentials: true });
-        console.log(data.photo)
+        const { data } = await axios.get(process.env.REACT_APP_USER_INFO || 'http://localhost:3001/user-info', { withCredentials: true });
         setUserInfo({ name: data.name, photo: data.photo });
-        console.log("hello")
       } catch (error) {
         console.error('Failed to fetch user info:', error);
       }
     };
 
-    fetchUserInfo();
-  }, []);
+    // Parse the query parameters
+    const searchParams = new URLSearchParams(location.search);
+    const isAuthenticated = localStorage.getItem('isAuthenticated')
+    // Check if 'auth=success' is present in the query parameters
+    if (searchParams.get('auth') === 'success' || isAuthenticated) {
+      fetchUserInfo();
+    }
+  }, []); 
 
   const handleButton = () => {
     setIsOpen(true)

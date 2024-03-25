@@ -66,31 +66,32 @@ app.get("/login", (req, res) => {
 
 app.get("/oauth2callback", async (req, res) => {
   const { code } = req.query;
-  
+
   try {
     const { tokens } = await oAuth2Client.getToken(code);
     if (!tokens) {
       console.error("Failed to retrieve tokens");
       return res.status(500).send("Failed to authenticate");
     }
-    
-    console.log("Tokens retrieved:", tokens); // Log the tokens for debugging
-    
+
+    console.log("Tokens retrieved:", tokens);
+
     oAuth2Client.setCredentials(tokens);
-    
+
     // Store the tokens in the session
     req.session.tokens = tokens;
-    console.log("Tokens stored in session:", req.session.tokens); // Verify tokens are set in the session
+    console.log("Tokens stored in session:", req.session.tokens);
 
-    // Attempt to save the session explicitly
+    // Save the session explicitly, if needed, then redirect
     req.session.save((err) => {
       if (err) {
         console.error("Session save error:", err);
         return res.status(500).send("Failed to save session");
       }
-      
+
       console.log("Session saved successfully with tokens");
-      const redirectUrl = process.env.REDIRECT_HOME;
+      // Redirect with auth=success query parameter
+      const redirectUrl = `${process.env.REDIRECT_HOME}?auth=success`;
       res.redirect(redirectUrl);
     });
   } catch (error) {
