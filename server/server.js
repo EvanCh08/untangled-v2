@@ -55,8 +55,10 @@ app.get('/oauth2callback', async (req, res) => {
     
     // Manually save the session before redirecting
     req.session.save(err => {
+      console.log(req.session.tokens)
       if (err) {
         // handle error here, for example by logging it and sending an error response
+        
         console.error('Session save error:', err);
         return res.status(500).send('Internal Server Error');
       }
