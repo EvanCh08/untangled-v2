@@ -104,6 +104,8 @@ app.get("/oauth2callback", async (req, res) => {
 
 app.get("/user-info", async (req, res) => {
   if (!req.session.tokens || !req.session.tokens.access_token) {
+    console.log("Here is tokens: ", req.session.tokens)
+    console.log("Here is access token: ", req.session.tokens.access_token)
     return res.status(401).send("User not authenticated");
   }
 
@@ -130,6 +132,8 @@ app.get("/user-info", async (req, res) => {
 
 app.get("/fetch-calendar-events", async (req, res) => {
   if (!req.session.tokens || !req.session.tokens.access_token) {
+    console.log("Here is tokens: ", req.session.tokens)
+    console.log("Here is access token: ", req.session.tokens.access_token)
     return res.status(401).send("User not authenticated");
   }
 
