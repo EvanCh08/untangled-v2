@@ -62,14 +62,37 @@ app.get("/login", (req, res) => {
 
 app.get("/oauth2callback", async (req, res) => {
   const { code } = req.query;
-  const { tokens } = await oAuth2Client.getToken(code);
-  oAuth2Client.setCredentials(tokens);
-  // Store the tokens in the session
-  req.session.tokens = tokens;
-  req.session.save(() => {
-    const redirectUrl = process.env.REDIRECT_HOME;
-    res.redirect(redirectUrl);
-  });
+  
+  try {
+    const { tokens } = await oAuth2Client.getToken(code);
+    if (!tokens) {
+      console.error("Failed to retrieve tokens");
+      return res.status(500).send("Failed to authenticate");
+    }
+    
+    console.log("Tokens retrieved:", tokens); // Log the tokens for debugging
+    
+    oAuth2Client.setCredentials(tokens);
+    
+    // Store the tokens in the session
+    req.session.tokens = tokens;
+    console.log("Tokens stored in session:", req.session.tokens); // Verify tokens are set in the session
+
+    // Attempt to save the session explicitly
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+        return res.status(500).send("Failed to save session");
+      }
+      
+      console.log("Session saved successfully with tokens");
+      const redirectUrl = process.env.REDIRECT_HOME;
+      res.redirect(redirectUrl);
+    });
+  } catch (error) {
+    console.error("Error during OAuth2 callback", error);
+    res.status(500).send("Authentication error");
+  }
 });
 
 app.get("/user-info", async (req, res) => {
