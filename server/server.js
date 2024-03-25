@@ -2,16 +2,20 @@ require("dotenv").config();
 const cors = require("cors");
 const express = require("express");
 const session = require("express-session");
+const LokiStore = require("connect-loki")(session);
 const { google } = require("googleapis");
 const axios = require("axios");
-const path = require("path");
-const app = express();
 
+const app = express();
 const port = process.env.PORT || 3001;
 
 app.use(
   session({
     secret: process.env.SESSION_SECRET, // Change this to a random secret string
+    store: new LokiStore({
+      path: './sessions.json', // The file path to store sessions (optional, defaults to './sessions.json')
+      logErrors: true, // Whether to log errors (optional)
+    }),
     resave: false,
     saveUninitialized: true,
     cookie: { secure: "auto" },
