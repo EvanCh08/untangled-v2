@@ -103,12 +103,6 @@ app.get("/oauth2callback", async (req, res) => {
 });
 
 app.get("/user-info", async (req, res) => {
-  if (!req.session.tokens || !req.session.tokens.access_token) {
-    console.log("Here is tokens: ", req.session.tokens)
-    console.log("Here is access token: ", req.session.tokens.access_token)
-    return res.status(401).send("User not authenticated");
-  }
-
   oAuth2Client.setCredentials(req.session.tokens);
 
   const peopleService = google.people({ version: "v1", auth: oAuth2Client });
