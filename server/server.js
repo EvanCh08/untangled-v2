@@ -13,21 +13,20 @@ app.use(
   session({
     secret: process.env.SESSION_SECRET, // Change this to a random secret string
     store: new LokiStore({
-      path: './sessions.json', // The file path to store sessions (optional, defaults to './sessions.json')
+      path: "./sessions.json", // The file path to store sessions (optional, defaults to './sessions.json')
       logErrors: true, // Whether to log errors (optional)
     }),
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: "auto", sameSite: 'none' },
-    
+    cookie: { secure: true, sameSite: "none" },
+    // cookie: { secure: false, sameSite: "lax" }, only for local development
   })
 );
 
 app.use(
   cors({
-    origin: [process.env.CORS_ORIGIN],
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     credentials: true,
-    
   })
 );
 
