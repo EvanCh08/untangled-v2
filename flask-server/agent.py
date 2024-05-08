@@ -1,4 +1,6 @@
+from dotenv import load_dotenv
 import os
+
 from datetime import datetime
 from flask_cors import CORS
 
@@ -13,10 +15,9 @@ from langchain.agents.format_scratchpad import format_to_openai_function_message
 from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
 from langchain_core.utils import function_calling
 
-from usecases.calendar_tools import GetCalendarEventsTool, TimeDeltaTool, CreateCalendarEventTool, SpecificTimeTool, DeleteCalendarEventTool
+from usecases.calendar_tools import GetCalendarEventsTool, TimeDeltaTool, CreateCalendarEventTool, SpecificTimeTool, DeleteCalendarEventTool, UpdateCalendarEventTool
 
-from flask import Flask, jsonify, request
-
+from flask import Flask, jsonify, request, send_from_directory
 
 import threading
 import time
@@ -24,7 +25,9 @@ import time
 app = Flask(__name__)
 CORS(app) 
 
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+load_dotenv()
+
+OPENAI_API_KEY = os.getenv("OPEN_AI_API_KEY")
 OPENAI_MODEL = "gpt-3.5-turbo-0613"
 
 asia_singapore_timezone = pytz.timezone("Asia/Singapore")
@@ -33,6 +36,7 @@ llm = ChatOpenAI(temperature=0, model=OPENAI_MODEL, api_key=OPENAI_API_KEY)
 persistent_memory = ConversationSummaryBufferMemory(llm=llm,memory_key="chat_history", return_messages=True, max_token_limit=500)
 
 @app.route("/agent", methods=["POST"])
+
 ### Main interaction loop ###
 def run(): 
     data = request.get_json()
@@ -41,13 +45,15 @@ def run():
     return jsonify(output)
         
 def run_agent_executor(user_email: str, user_input: str, calendar_id: str, memory, response_container):
-    # Options
+     # Options
     tools = [
         TimeDeltaTool(),
         GetCalendarEventsTool(),
         CreateCalendarEventTool(),
         SpecificTimeTool(),
         DeleteCalendarEventTool(),
+        UpdateCalendarEventTool(),
+
     ]
 
     input = f"""
@@ -64,6 +70,7 @@ def run_agent_executor(user_email: str, user_input: str, calendar_id: str, memor
                 "system",
                 "Your name is Ethan. You are a funny and friendly assistant who can help me schedule my meetings, fetch my calendar events and optimise my task completion. NEVER print event ids to the user. Remember the user's response.",
             ),
+            MessagesPlaceholder(variable_name="chat_history"),
             ("user", "{input}"),
             MessagesPlaceholder(variable_name="agent_scratchpad"),
         ]
@@ -79,13 +86,14 @@ def run_agent_executor(user_email: str, user_input: str, calendar_id: str, memor
             "agent_scratchpad": lambda x: format_to_openai_function_messages(
                 x["intermediate_steps"]
             ),
+            "chat_history": lambda x: x["chat_history"],
         }
         | prompt
         | llm_with_tools
         | OpenAIFunctionsAgentOutputParser()
     )
 
-    agent_executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=True, memory=memory)
+    agent_executor = AgentExecutor.from_agent_and_tools(agent=agent, tools=tools, verbose=True, memory=memory, max_iterations=10)
     result = agent_executor.invoke({"input": input})
     
     response_container["response"] = result.get("output")
@@ -93,7 +101,7 @@ def run_agent_executor(user_email: str, user_input: str, calendar_id: str, memor
 ### running the agent ###
 def agent_task(input_data, memory, response_container):
     """
-    This is where the agent's work based on the user input is executed.
+    This is where the agent's work based on the user input  is executed.
     Replace the print statement with the actual work of your agent.
     """
 
@@ -101,7 +109,6 @@ def agent_task(input_data, memory, response_container):
 
     # Simulate some work with a sleep
     time.sleep(2)
-
 def start_agent(input_data, memory):
     """
     Starts the agent task in a new thread based on the given input_data.

@@ -1,6 +1,7 @@
 export default function Login() {
     const handleLogin = () => {
-        window.location.href = 'http://localhost:3001/login';
+        const loginUrl = process.env.REACT_APP_LOGIN_URL || 'http://localhost:3001/login';
+        window.location.href = loginUrl
     };
     return (
         <div className="w-full h-screen flex justify-center items-center">
