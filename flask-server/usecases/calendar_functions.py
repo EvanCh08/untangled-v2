@@ -1,6 +1,62 @@
 import os
+import jwt
+import time
 import requests
-import secrets
+from dotenv import load_dotenv
+
+load_dotenv()
+
+BACKEND_URL = "backend.untangled-ai.com"
+
+def get_tokens(email):
+    response = requests.get(f"{BACKEND_URL}/get-tokens?email={email}")
+    response.raise_for_status()
+    return response.json()
+
+def refresh_access_token(refresh_token):
+    token_url = os.getenv("TOKEN_URI")
+    client_id = os.getenv("GOOGLE_CLIENT_ID")
+    client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
+    params = {
+        "grant_type": "refresh_token",
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "refresh_token": refresh_token,
+    }
+    response = requests.post(token_url, data=params)
+    response.raise_for_status()
+    return response.json()
+
+def get_valid_access_token(email):
+    tokens = get_tokens(email)
+    access_token = tokens.get("access_token")
+    refresh_token = tokens.get("refresh_token")
+
+    if not access_token or is_token_expired(access_token):
+        new_tokens = refresh_access_token(refresh_token)
+        access_token = new_tokens.get("access_token")
+
+        # Optionally update the tokens in the backend
+        update_tokens_in_backend(email, new_tokens)
+        
+    return access_token
+
+def is_token_expired(token):
+    try:
+        decoded_token = jwt.decode(token, options={"verify_signature": False})
+        exp = decoded_token.get("exp")
+        if exp:
+            return exp < time.time()
+        return False
+    except jwt.ExpiredSignatureError:
+        return True
+    except Exception as e:
+        print(f"Error checking token expiry: {e}")
+        return False
+
+def update_tokens_in_backend(email, tokens):
+    response = requests.post(f"{BACKEND_URL}/update-tokens", json={"email": email, "tokens": tokens})
+    response.raise_for_status()
 
 session = requests.Session()
 
@@ -19,8 +75,8 @@ def get_access_token():
     response.raise_for_status()  # Add this line to catch HTTP errors
     return response.json().get("access_token")
 
-def get_calendar_events(start_time, end_time, return_event_ids=False):
-    access_token = get_access_token()
+def get_calendar_events(user_email, start_time, end_time, return_event_ids=False):
+    access_token = get_valid_access_token(user_email)
 
     # Use 'primary' as the calendar ID
     calendar_id = 'primary'
@@ -59,7 +115,7 @@ def get_calendar_events(start_time, end_time, return_event_ids=False):
     return event_list
 
 def get_calendar_timezone(user_email, calendar_id):
-    access_token = get_access_token()
+    access_token = get_valid_access_token(user_email)
     
     calendar_id = 'primary'
 
@@ -83,7 +139,7 @@ def get_calendar_timezone(user_email, calendar_id):
 def create_event(user_email, calendar_id, event_name, start_datetime, end_datetime, attendee=None, location=None):
     timezone = "Asia/Singapore"
     # get_calendar_timezone(user_email, calendar_id)  # This could be used to dynamically set the timezone
-    access_token = get_access_token()
+    access_token = get_valid_access_token(user_email)
 
     calendar_id = 'primary'
 
@@ -122,7 +178,7 @@ def create_event(user_email, calendar_id, event_name, start_datetime, end_dateti
 
 
 def delete_event(user_email, calendar_id, event_id):
-    access_token = get_access_token()
+    access_token = get_valid_access_token(user_email)
 
     calendar_id = 'primary'
 
@@ -142,8 +198,8 @@ def delete_event(user_email, calendar_id, event_id):
     else:
         return {"error": "Failed to delete event"}
 
-def update_event(calendar_id, event_id, event_name=None, start_datetime=None, end_datetime=None, attendee=None, location=None):
-    access_token = get_access_token()
+def update_event(user_email, calendar_id, event_id, event_name=None, start_datetime=None, end_datetime=None, attendee=None, location=None):
+    access_token = get_valid_access_token(user_email)
 
     calendar_id = 'primary'
 
