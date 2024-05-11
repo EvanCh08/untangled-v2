@@ -17,15 +17,47 @@ const oAuth2Client = new google.auth.OAuth2(
   redirectUri
 );
 
+const tokenSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  tokens: { type: Object, required: true },
+});
+
+const Token = mongoose.model("Token", tokenSchema);
+const { v4: uuidv4 } = require("uuid");
+
+async function connectToMongo() {
+  const MAX_RETRIES = 10;
+  const RETRY_DELAY = 5000; // milliseconds
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      await mongoose.connect(process.env.MONGODB_URI);
+      console.log("Connected to MongoDB successfully.");
+      return;
+    } catch (err) {
+      console.error(
+        `Attempt ${attempt} - Could not connect to MongoDB: ${err}`
+      );
+      if (attempt < MAX_RETRIES) {
+        console.log(`Retrying in ${RETRY_DELAY / 1000} seconds...`);
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+      } else {
+        throw new Error("Max retries reached. Could not connect to MongoDB.");
+      }
+    }
+  }
+}
+
 async function main() {
+  await connectToMongo();
   const app = express();
 
   const sessionStore = MongoStore.create({
     mongoUrl: process.env.MONGODB_URI,
-    collection: 'sessions',
+    collection: "sessions",
   });
-  app.set('trust proxy', 1)
-  
+  app.set("trust proxy", 1);
+
   app.use(
     session({
       secret: process.env.SESSION_SECRET,
@@ -35,10 +67,10 @@ async function main() {
       saveUninitialized: false,
       cookie: {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: process.env.NODE_ENV === "production",
         path: "/",
         domain: ".untangled-ai.com",
-        sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         maxAge: 1000 * 60 * 60 * 24 * 7,
       },
     })
@@ -65,35 +97,42 @@ async function main() {
     next();
   });
 
-  // app.use((req, res, next) => {
-  //   const allowedOrigins = [
-  //     "https://main.untangled-ai.com",
-  //     "https://backend.untangled-ai.com",
-  //     "https://untangled-ai.com",
-  //     "https://www.untangled-ai.com",
-  //   ];
-  //   const origin = req.headers.origin;
-  //   if (allowedOrigins.includes(origin)) {
-  //     res.header("Access-Control-Allow-Origin", origin);
-  //   }
+  app.get("/get-tokens", async (req, res) => {
+    try {
+      const email = req.query.email;
+      const tokenRecord = await Token.findOne({ email: email });
+      console.log("Token Record:", tokenRecord);
+      if (!tokenRecord) {
+        return res.status(404).send("Tokens not found");
+      }
+      res.json(tokenRecord.tokens);
+    } catch (error) {
+      console.error("Error fetching tokens:", error);
+      res.status(500).send("Internal Server Error");
+    }
+  });
 
-  //   res.header("Access-Control-Allow-Credentials", "true");
-  //   res.header(
-  //     "Access-Control-Allow-Headers",
-  //     "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-  //   );
-  //   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
-  //   next();
-  // });
-
-  const { v4: uuidv4 } = require("uuid");
+  app.post("/update-tokens", async (req, res) => {
+    try {
+      const { email, tokens } = req.body;
+      const tokenRecord = await Token.findOneAndUpdate(
+        { email: email },
+        { tokens: tokens },
+        { upsert: true, new: true }
+      );
+      res.json(tokenRecord);
+    } catch (error) {
+      console.error("Error updating tokens:", error);
+      res.status(500).send("Internal Server Error");
+    }
+  });
 
   app.get("/login", (req, res) => {
     const state = uuidv4(); // Generate a unique state value
     req.session.state = state;
     console.log("Login - Generated state:", state);
     console.log("Login - Session state:", req.session.state);
-    
+
     const url = oAuth2Client.generateAuthUrl({
       access_type: "offline",
       scope: [
@@ -181,22 +220,21 @@ async function main() {
     const tokens = req.session.tokens; // Corrected line
 
     if (!tokens || !tokens.access_token) {
-        console.log("Token issue or not authenticated");
-        return res.status(401).send("User not authenticated");
+      console.log("Token issue or not authenticated");
+      return res.status(401).send("User not authenticated");
     }
 
     try {
-        await oAuth2Client.getTokenInfo(tokens.access_token);
-        console.log("auth check", tokens.access_token);
-        return res.json({ isAuthenticated: true });
+      await oAuth2Client.getTokenInfo(tokens.access_token);
+      console.log("auth check", tokens.access_token);
+      return res.json({ isAuthenticated: true });
     } catch (error) {
-        console.error("Invalid or expired token:", error);
-        return res
-            .status(401)
-            .json({ isAuthenticated: false, error: "Invalid or expired token" });
+      console.error("Invalid or expired token:", error);
+      return res
+        .status(401)
+        .json({ isAuthenticated: false, error: "Invalid or expired token" });
     }
-});
-
+  });
 
   app.options("/user-info", (req, res) => {
     res.sendStatus(204);
@@ -214,14 +252,17 @@ async function main() {
     // oAuth2Client.setCredentials(tokens);
 
     const peopleService = google.people({ version: "v1", auth: oAuth2Client });
-    const calendarService = google.calendar({ version: 'v3', auth: oAuth2Client });
+    const calendarService = google.calendar({
+      version: "v3",
+      auth: oAuth2Client,
+    });
     try {
       const me = await peopleService.people.get({
         resourceName: "people/me",
         personFields: "names,photos,emailAddresses",
       });
 
-      console.log("me: ", me.data)
+      console.log("me: ", me.data);
 
       const userInfo = {
         name: me.data.names[0].displayName,
@@ -230,9 +271,13 @@ async function main() {
       };
 
       const calendarList = await calendarService.calendarList.list();
-      const primaryCalendar = calendarList.data.items.find(calendar => calendar.primary);
+      const primaryCalendar = calendarList.data.items.find(
+        (calendar) => calendar.primary
+      );
 
-      userInfo.calendarId = primaryCalendar ? primaryCalendar.id : 'No primary calendar found';
+      userInfo.calendarId = primaryCalendar
+        ? primaryCalendar.id
+        : "No primary calendar found";
 
       res.json(userInfo);
     } catch (error) {
@@ -244,31 +289,30 @@ async function main() {
   app.get("/fetch-calendar-events", async (req, res) => {
     console.log("fetch-calendar-events Session:", req.session.tokens);
     const tokens = req.session.tokens; // Corrected line
-    
+
     if (!tokens || !tokens.access_token) {
-        console.log("Token issue or not authenticated");
-        return res.status(401).send("User not authenticated");
+      console.log("Token issue or not authenticated");
+      return res.status(401).send("User not authenticated");
     }
 
     oAuth2Client.setCredentials(tokens);
     console.log("fetch events", tokens.access_token);
 
     try {
-        const response = await axios.get(
-            "https://www.googleapis.com/calendar/v3/calendars/primary/events",
-            {
-                headers: {
-                    Authorization: `Bearer ${tokens.access_token}`,
-                },
-            }
-        );
-        res.json(response.data.items);
+      const response = await axios.get(
+        "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+        {
+          headers: {
+            Authorization: `Bearer ${tokens.access_token}`,
+          },
+        }
+      );
+      res.json(response.data.items);
     } catch (error) {
-        console.error("Error fetching calendar events:", error);
-        res.status(500).send("Error fetching calendar events");
+      console.error("Error fetching calendar events:", error);
+      res.status(500).send("Error fetching calendar events");
     }
-});
-
+  });
 
   app.listen(port, "0.0.0.0", () => {
     console.log(`Server started at http://localhost:${port}`);
