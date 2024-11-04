@@ -286,7 +286,8 @@ export default function UserInfo() {
               <img
                 src={imageSrc}
                 alt="Profile"
-                className="w-32 h-32 rounded-full object-cover mb-4"
+                className="w-32 h-32 rounded-full object-c
+                over mb-4"
               />
               <div className="bg-white space-x-3 flex items-center mb-4">
                 <label className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded-lg cursor-pointer">

@@ -22,6 +22,7 @@ export default function NavBar({
   const email = useSelector((state) => state.user.email);
   const calendarId = useSelector((state) => state.user.calendarId);
   const occupation = useSelector((state) => state.user.occupation);
+  const tier = useSelector((state) => state.user.tier);
   const dispatch = useDispatch();
 
   // axios.interceptors.response.use(
@@ -98,6 +99,10 @@ export default function NavBar({
           finalPhoto = data.newPhoto;
         }
 
+        if (data.tier == "premium") {
+          setIsFreePlan(false)
+        }
+
         dispatch(
           setUserInfo({
             name: finalName,
@@ -170,7 +175,7 @@ export default function NavBar({
     setIsNavOpen(false);
   };
 
-  
+
   const bgMargin2 = isOpen ? "mt-2" : "mt-0";
 
   const mobileNavbarRef = useRef(null);
@@ -218,9 +223,8 @@ export default function NavBar({
           )}
           <div></div>
           <div
-            className={`fixed z-20 duration-500 left-0 top-0 h-screen bg-white transition-all border rounded-lg ${
-              isOpen ? "w-[285px]" : "w-0"
-            }`} // Use Tailwind's width utilities for animation
+            className={`fixed z-20 duration-500 left-0 top-0 h-screen bg-white transition-all border rounded-lg ${isOpen ? "w-[285px]" : "w-0"
+              }`} // Use Tailwind's width utilities for animation
           >
             <div className="flex justify-center ">
               <div className="flex items-center space-x-5 h-20 mt-5">
@@ -242,7 +246,7 @@ export default function NavBar({
                       {name}
                     </span>
                     <span className="text-sm font-semibold text-blueNav">
-                      Free Plan
+                      {tier.charAt(0).toUpperCase() + tier.slice(1)} Plan
                     </span>
                     {isFreePlan && (
                       <button
@@ -281,9 +285,8 @@ export default function NavBar({
                     </div> */}
                     <div className="mt-8">
                       <div
-                        className={`p-3 flex items-center ${
-                          isHome ? "bg-slate-100" : "bg-white"
-                        } rounded-lg`}
+                        className={`p-3 flex items-center ${isHome ? "bg-slate-100" : "bg-white"
+                          } rounded-lg`}
                       >
                         <Link
                           to={{ pathname: "/home" }}
@@ -292,17 +295,15 @@ export default function NavBar({
                           <div className="flex flex-row items-center justify-between w-full space-x-5">
                             <img
                               src="ethan.svg"
-                              className={`h-[30px] w-[30px] ${
-                                isHome ? "opacity-100" : "opacity-80"
-                              } `}
+                              className={`h-[30px] w-[30px] ${isHome ? "opacity-100" : "opacity-80"
+                                } `}
                               alt="ethan"
                             />
                             <text
-                              className={`${
-                                isHome
+                              className={`${isHome
                                   ? "font-bold text-blueNav"
                                   : " font-medium text-blackNav opacity-70"
-                              } `}
+                                } `}
                             >
                               Ethan
                             </text>
@@ -423,9 +424,8 @@ export default function NavBar({
                         </Link>
                       </div> */}
                       <div
-                        className={`p-3 flex items-center mt-2 rounded-lg ${
-                          isInstruction ? "bg-slate-100" : "bg-white"
-                        }`}
+                        className={`p-3 flex items-center mt-2 rounded-lg ${isInstruction ? "bg-slate-100" : "bg-white"
+                          }`}
                       >
                         <Link
                           to={{ pathname: "/documentation" }}
@@ -434,16 +434,14 @@ export default function NavBar({
                           <div className="flex flex-row items-center justify-between w-full space-x-5 ">
                             <img
                               src="square.svg"
-                              className={`h-[30px] w-[30px] ${
-                                isInstruction ? "opacity-100" : "opacity-80"
-                              } `}
+                              className={`h-[30px] w-[30px] ${isInstruction ? "opacity-100" : "opacity-80"
+                                } `}
                             />
                             <text
-                              className={`${
-                                isInstruction
+                              className={`${isInstruction
                                   ? "font-bold text-blueNav"
                                   : " font-medium text-blackNav opacity-70"
-                              } `}
+                                } `}
                             >
                               Help
                             </text>
@@ -461,7 +459,7 @@ export default function NavBar({
                           alt="exit"
                           className="h-[32px] w-[31px]"
                         /></div>
-                        
+
                         {isOpen && (
                           <span className="font-medium text-blackNav opacity-70">
                             Logout
@@ -488,9 +486,8 @@ export default function NavBar({
         </div>
       </div>
       <div
-        className={`duration-500 visible xsm:hidden xl:block sxl:block h-full text-black ${
-          isOpen ? "w-[285px]" : "w-[70px]"
-        } transition-width border rounded-lg`}
+        className={`duration-500 visible xsm:hidden xl:block sxl:block h-full text-black ${isOpen ? "w-[285px]" : "w-[70px]"
+          } transition-width border rounded-lg`}
         ref={desktopNavbarRef}
         onClick={handleButton}
       >
@@ -509,7 +506,7 @@ export default function NavBar({
                   {name}
                 </span>
                 <span className="text-sm font-semibold text-blueNav">
-                  Free Plan
+                  {tier.charAt(0).toUpperCase() + tier.slice(1)} Plan
                 </span>
                 {isFreePlan && (
                   <button
@@ -549,9 +546,8 @@ export default function NavBar({
                       </div>
                     )} */}
                   <div
-                    className={`mt-2 ${
-                      isHome ? "bg-slate-100" : "bg-white"
-                    }  p-3 items-center rounded-lg bg-black`}
+                    className={`mt-2 ${isHome ? "bg-slate-100" : "bg-white"
+                      }  p-3 items-center rounded-lg bg-black`}
                   >
                     <Link
                       to={{ pathname: "/home" }}
@@ -561,9 +557,8 @@ export default function NavBar({
                         {" "}
                         <img
                           src="ethan.svg"
-                          className={`h-[30px] w-[30px] ${
-                            isHome ? "opacity-100" : "opacity-80"
-                          } `}
+                          className={`h-[30px] w-[30px] ${isHome ? "opacity-100" : "opacity-80"
+                            } `}
                         />
                       </li>
                       {isOpen && (
@@ -576,11 +571,10 @@ export default function NavBar({
                           }}
                         >
                           <text
-                            className={`${
-                              isHome
+                            className={`${isHome
                                 ? "font-bold text-blueNav"
                                 : " font-medium text-blackNav opacity-70"
-                            }`}
+                              }`}
                           >
                             Ethan
                           </text>
@@ -768,9 +762,8 @@ export default function NavBar({
                         </Link>
                       </div> */}
                     <div
-                      className={`${bgMargin2} ${
-                        isInstruction ? "bg-slate-100" : "bg-white"
-                      } p-3 flex items-center rounded-lg `}
+                      className={`${bgMargin2} ${isInstruction ? "bg-slate-100" : "bg-white"
+                        } p-3 flex items-center rounded-lg `}
                     >
                       <Link
                         to={{ pathname: "/documentation" }}
@@ -780,25 +773,23 @@ export default function NavBar({
                           {" "}
                           <img
                             src="square.svg"
-                            className={`h-[30px] w-[30px] ${
-                              isInstruction ? "opacity-100" : "opacity-80"
-                            } `}
+                            className={`h-[30px] w-[30px] ${isInstruction ? "opacity-100" : "opacity-80"
+                              } `}
                           />
                         </li>
                         {isOpen && (
                           <div className="flex flex-row items-center justify-between  w-[118px] ">
                             <text
-                              className={`${
-                                isInstruction
+                              className={`${isInstruction
                                   ? "font-bold text-blueNav"
                                   : " font-medium text-blackNav opacity-70"
-                              }`}
+                                }`}
                             >
                               Help
                             </text>
                           </div>
                         )}
-                        
+
                       </Link>
                     </div>
                     <div className="flex flex-row items-center justify-between w-full space-x-5 mt-2 p-3 bg-white rounded-lg">
@@ -820,7 +811,7 @@ export default function NavBar({
                           </span>
                         )}
                       </button>
-                      
+
                     </div>
                   </div>
                 </div>
