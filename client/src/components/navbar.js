@@ -26,16 +26,16 @@ export default function NavBar({
   const tier = useSelector((state) => state.user.tier);
   const dispatch = useDispatch();
 
-  // axios.interceptors.response.use(
-  //   (response) => response,
-  //   (error) => {
-  //     if (error.response && error.response.status === 401) {
-  //       window.location.href =
-  //         /*process.env.REACT_MAIN_URL */ "http://localhost:3000/";
-  //     }
-  //     return Promise.reject(error);
-  //   }
-  // );
+  axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response && error.response.status === 401) {
+        window.location.href =
+          process.env.REACT_MAIN_URL /*|| "http://localhost:3000/"*/;
+      }
+      return Promise.reject(error);
+    }
+  );
 
   const handleLogout = async () => {
     console.log("confirmation here 1");
@@ -45,7 +45,8 @@ export default function NavBar({
       return; // Abort logout if user cancels
     }
 
-    const logoutUrl = "http://localhost:3001/logout";
+    const logoutUrl =
+    process.env.REACT_APP_LOGOUT_URL; /*|| "http://localhost:3001/logout"*/
     console.log("Logout URL:", logoutUrl);
 
     if (!logoutUrl) {
@@ -65,7 +66,7 @@ export default function NavBar({
       // Refresh the page almost immediately after sending the request
       setTimeout(() => {
         console.log("Logout successful, reloading page...");
-        const loginPage = "http://localhost:3000";
+        const loginPage = process.env.REACT_APP_MAIN_URL /*|| "http://localhost:3000"*/;
         window.location.href = loginPage;
       }, 100); // Adjust the timeout as needed
     } catch (error) {

@@ -13,7 +13,7 @@ export default function Freemium() {
   const sendData = async () => {
     try {
       const res = await axios.post(
-        "http://localhost:3001/update-freemium",
+        process.env.REACT_APP_FREEMIUM_URL /*|| "http://localhost:3001/update-freemium"*/,
         {
           tier: tier,
         },
@@ -25,7 +25,7 @@ export default function Freemium() {
         }
       );
       console.log(res.data.message);
-      window.location.href = "http://localhost:3000/home?auth=success"; // Redirect to the specified URL
+      window.location.href = REACT_APP_HOME_URL /*|| "http://localhost:3000/home?auth=success"*/; // Redirect to the specified URL
     } catch (error) {
       console.error("Error updating user profile:", error);
       alert("Failed to update profile.");

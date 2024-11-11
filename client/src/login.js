@@ -7,7 +7,7 @@ export default function Login() {
   const handleLogin = () => {
     
     const loginUrl =
-      process.env.REACT_APP_LOGIN_URL || "http://localhost:3001/login";
+      process.env.REACT_APP_LOGIN_URL /*|| "http://localhost:3001/login"*/;
     window.location.href = loginUrl;
   };
 
@@ -26,13 +26,13 @@ export default function Login() {
   useEffect(() => {
     const verifyAuth = async () => {
       const { data } = await axios.get(
-        /*process.env
-          .REACT_APP_USER_INFO ||*/ "http://localhost:3001/auth-check",
+        process.env.REACT_APP_AUTH_CHECK,
         { withCredentials: true }
       );
       if (data.isAuthenticated) {
-        window.location.href = "http://localhost:3000/home";
-      }
+        const homeUrl = process.env.REACT_APP_HOME_URL
+        window.location.href = homeUrl;
+      } 
     };
 
     verifyAuth();

@@ -12,7 +12,7 @@ const port = process.env.PORT || 3001;
 const clientId = process.env.GOOGLE_CLIENT_ID;
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 const redirectUri =
-  /*process.env.GOOGLE_REDIRECT_URI || */ "http://localhost:3001/oauth2callback";
+  process.env.GOOGLE_REDIRECT_URI /*|| "http://localhost:3001/oauth2callback"*/;
 const oAuth2Client = new google.auth.OAuth2(
   clientId,
   clientSecret,
@@ -81,10 +81,14 @@ async function main() {
       secret: process.env.SESSION_SECRET,
       store: sessionStore,
       resave: false,
+      // saveUninitialized: true,
       saveUninitialized: false,
       cookie: {
-        secure: false,
-        sameSite: "lax",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        domain: ".untangled-ai.com",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         maxAge: 1000 * 60 * 60 * 24 * 7,
       },
     })
@@ -93,17 +97,15 @@ async function main() {
   app.use(
     cors({
       origin: [
-        // "https://main.untangled-ai.com",
-        // "https://backend.untangled-ai.com",
-        // "https://untangled-ai.com",
-        // "https://www.untangled-ai.com",
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:3002",
-        "http://localhost:5001",
+        "https://main.untangled-ai.com",
+        "https://backend.untangled-ai.com",
+        "https://untangled-ai.com",
+        "https://www.untangled-ai.com",
+        "https://agent.untangled-ai.com",
       ],
       credentials: true,
       methods: "GET,POST,OPTIONS,PUT,DELETE",
+
       allowedHeaders:
         "Origin, X-Requested-With, Content-Type, Accept, Authorization",
     })
@@ -227,13 +229,13 @@ async function main() {
               photo: me.data.photos[0].url,
               newName: me.data.names[0].displayName,
               newPhoto: me.data.photos[0].url,
-              calendarId: primaryCalendar.id, 
+              calendarId: primaryCalendar.id,
               tier: '',// Assuming you set this later or modify it
             });
 
-            redirectUrl = "http://localhost:3000/userinfo";
+            redirectUrl = process.env.REACT_APP_USER_INFO_URL /*|| "http://localhost:3000/userinfo"*/;
           } else {
-            redirectUrl = "http://localhost:3000/home?auth=success";
+            redirectUrl = process.env.REDIRECT_HOME /*|| "http://localhost:3000/home?auth=success"*/;
           }
 
           req.session.email = email;
@@ -438,9 +440,9 @@ async function main() {
     // Process custom "Others" values
     const occupation = data.occupation.includes("Others")
       ? [
-          ...data.occupation.filter((item) => item !== "Others"),
-          data.customOccupation,
-        ]
+        ...data.occupation.filter((item) => item !== "Others"),
+        data.customOccupation,
+      ]
       : data.occupation;
     const reason = data.reason.includes("Others")
       ? [...data.reason.filter((item) => item !== "Others"), data.customReason]
