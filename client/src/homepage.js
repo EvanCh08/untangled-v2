@@ -510,7 +510,7 @@ export default function Home() {
 
         dispatch(setIsAuthenticated(data.isAuthenticated));
         if (data.isAuthenticated === false) {
-          window.location.href = REACT_APP_MAIN_URL /*|| "http://localhost:3000/"*/
+          window.location.href = process.env.REACT_APP_MAIN_URL /*|| "http://localhost:3000/"*/
         }
         console.log(`hello\nworld`);
       } catch (error) {

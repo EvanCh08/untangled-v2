@@ -25,7 +25,7 @@ export default function Freemium() {
         }
       );
       console.log(res.data.message);
-      window.location.href = REACT_APP_HOME_URL /*|| "http://localhost:3000/home?auth=success"*/; // Redirect to the specified URL
+      window.location.href = process.env.REACT_APP_HOME_URL /*|| "http://localhost:3000/home?auth=success"*/; // Redirect to the specified URL
     } catch (error) {
       console.error("Error updating user profile:", error);
       alert("Failed to update profile.");
