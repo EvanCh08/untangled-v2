@@ -39,6 +39,7 @@ export default function Home() {
   const [firstTypingComplete, setFirstTypingComplete] = useState(false);
   const containerRef = useRef(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [triggerFetch, setTriggerFetch] = useState(false);
 
   useEffect(() => {
     setIsLoaded(true); // Set the state to true to trigger the transition
@@ -194,7 +195,9 @@ export default function Home() {
     fetchUserInfo();
 
     // Dependency array is empty, so this effect runs only once when the component mounts
-  }, [dispatch]);
+  }, [dispatch, triggerFetch]);
+
+  
 
   const parseResponse = (response) => {
     // Custom parsing logic based on your response format
@@ -282,7 +285,12 @@ export default function Home() {
         let isUpdateSchedule;
 
         console.log(agentData.eventDetails, "This is session from homepage");
+        const output = agentData.checkTier
+        console.log("Output: ", output)
 
+        if (output) {
+          setTriggerFetch(!triggerFetch)
+        }
         const temporaryResponse = agentData.response;
 
         if (agentData.eventDetails) {

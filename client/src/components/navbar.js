@@ -22,6 +22,7 @@ export default function NavBar({
   const email = useSelector((state) => state.user.email);
   const calendarId = useSelector((state) => state.user.calendarId);
   const occupation = useSelector((state) => state.user.occupation);
+  const isAgent = useSelector((state) => state.agent.isAgent);
   const tier = useSelector((state) => state.user.tier);
   const dispatch = useDispatch();
 
@@ -123,6 +124,63 @@ export default function NavBar({
 
     // Dependency array is empty, so this effect runs only once when the component mounts
   }, [dispatch]);
+
+  useEffect(() => {
+    console.log("testing this is from navbar")
+    // Update isFreePlan based on the latest tier
+    setIsFreePlan(tier !== "premium");
+  }, [tier]);
+
+  // useEffect(() => {
+  //   const fetchStripe = async () => {
+  //     try {
+  //       const response = await fetch(
+  //         /* process.env.REACT_APP_API_URL || */ "http://localhost:5001/check-tier",
+  //         {
+  //           method: "POST",
+  //           headers: {
+  //             "Content-Type": "application/json",
+  //           },
+  //           body: JSON.stringify({
+            
+  //             user_email: email,
+  //             calendar_id: calendarId,
+              
+  //             tier: tier,
+  //           }),
+  //         }
+  //       );
+
+        
+  
+  //       // Check if the response is okay
+  //       if (!response.ok) {
+  //         throw new Error(`HTTP error! status: ${response.status}`);
+  //       }
+  
+  //       // Parse response data as JSON
+  //       const data = await response.json();
+  //       if (data.result == "premium") {
+  //         setIsFreePlan(false)
+  //       }
+  //       console.log("Response from /check-tier:", data);
+  //       // You can now use `data.result` or whatever the response structure is
+  //     } catch (error) {
+  //       console.error("Error fetching Stripe data:", error);
+  //     }
+  //   };
+  
+  //   // Call fetchStripe immediately when the component mounts
+  //   fetchStripe();
+  
+  //   // Set up an interval to run fetchStripe every 5 seconds (5000 ms)
+  //   const interval = setInterval(() => {
+  //     fetchStripe();
+  //   }, 5000);
+  
+  //   // Clear the interval when the component unmounts
+  //   return () => clearInterval(interval);
+  // }, [ email, calendarId, tier]);
 
   // useEffect(() => {
   //   const fetchUserInfo = async () => {
