@@ -165,9 +165,9 @@ class RetrieveContactTool(BaseTool):
     name: str = "retrieve_contact"
     description: str = "Retrieves contacts from the MongoDB contact list collection."
 
-    db: Any = Field(default_factory=lambda: None)
-    user_email: str = Field(default_factory=lambda: "")
+    db: Any = Field(default_factory=lambda: "rag_database")
     collection_name: str = Field(default_factory=lambda: "contact_list")
+    user_email: str = Field(default_factory=lambda: "")
 
     def __init__(self, db: Any, user_email: str, collection_name: str = "contact_list"):
         super().__init__(db=db, user_email=user_email, collection_name=collection_name)
@@ -175,10 +175,11 @@ class RetrieveContactTool(BaseTool):
     def _run(self, query: str = "") -> Dict[str, Any]:
         try:
             # Search for documents where created_by field matches user_email
-            search_filter = {"id": self.user_email}
+            search_filter = {"metadata.created_by": self.user_email}
+            
             
             contacts = list(self.db[self.collection_name].find(search_filter))
-
+            
             if not contacts:
                 return {"error": "No contacts found for this user"}
 

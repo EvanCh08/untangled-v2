@@ -85,9 +85,7 @@ export default function Documentation() {
                 onToggle={handleToggle}
               >
                 <p>
-                  Currently, Ethan does not support contact/mailing list. This
-                  feature is currently in development and will be available on
-                  Ethan+.
+                  Currently, a contact/mailing list is only supported on Ethan+. 
                 </p>
               </AccordionItem>
               <AccordionItem

@@ -10,6 +10,10 @@ from textembedding import get_embedding
 from pymongo import MongoClient
 from bson.son import SON
 
+from mongoconnect import connect_to_mongo
+
+connect_to_mongo()
+
 class ModifyUserPreferenceTool(BaseTool):
     name: str = "modify_user_preference"
     description: str = "Modifies user preferences in MongoDB by finding the closest matching embedding and updating the content."
@@ -153,7 +157,7 @@ class FetchUserPreferenceTool(BaseTool):
     name: str = "fetch_user_preference"
     description: str = "Fetches a user preference from MongoDB by finding the closest matching embedding."
 
-    db: Any = Field(default=None)
+    db: Any = Field(default="rag_database")
     user_id: str = Field(default_factory=lambda: "")
     collection_name: str = Field(default_factory=lambda: "user_preferences")
 
@@ -162,13 +166,17 @@ class FetchUserPreferenceTool(BaseTool):
 
     def _run(self, query: str) -> str:
         try:
-            # Step 1: Generate an embedding for the user query
+            # Step 1: Check if any preferences exist for the user
+            if not self.has_preferences():
+                return "No preferences found for the user."
+
+            # Step 2: Generate an embedding for the user query
             query_embedding = get_embedding(query)
 
-            # Step 2: Query MongoDB using the generated embedding
+            # Step 3: Query MongoDB using the generated embedding
             results = self.query_user_preference(query_embedding)
 
-            # Step 3: Return the top result (if any)
+            # Step 4: Return the top result (if any)
             if results:
                 top_result = results[0]
                 return f"Found preference: '{top_result['preference_title']}' - {top_result['preference_content']} (similarity: {top_result['similarity_score']:.4f})"
@@ -178,13 +186,112 @@ class FetchUserPreferenceTool(BaseTool):
         except Exception as e:
             return f"Error fetching preference: {str(e)}"
 
+    def has_preferences(self) -> bool:
+        """
+        Checks if there are any preferences for the user in the database.
+        Returns True if preferences exist, otherwise False.
+        """
+        try:
+            preference_count = self.db[self.collection_name].count_documents({"user_id": self.user_id})
+            print(f"Preference count for user '{self.user_id}': {preference_count}")
+            return preference_count > 0
+        except Exception as e:
+            print(f"Error checking user preferences: {str(e)}")
+            raise RuntimeError(f"Failed to check user preferences: {str(e)}")
+
     def query_user_preference(self, query_embedding: list, top_n: int = 5) -> list:
         """
         Query MongoDB collection for user preferences using the given query embedding.
         Returns the top N most similar preferences based on cosine similarity.
         """
-        try:                        
+        try:
             # Perform the search using the `$search` aggregation stage
+            results = list(self.db[self.collection_name].aggregate([
+                {
+                    "$vectorSearch": {
+                        "index": "vector_index",
+                        "path": "embedding",
+                        "queryVector": query_embedding,
+                        "numCandidates": 5,
+                        "limit": top_n
+                    }
+                },
+                {
+                    "$match": {
+                        "user_id": self.user_id
+                    }
+                },
+                {
+                    "$project": {
+                        "preference_title": 1, 
+                        "preference_content": 1, 
+                        "score": {
+                            "$meta": "vectorSearchScore"
+                        }
+                    }
+                }
+            ]))
+            
+            # Parse and return the results
+            preferences = []
+            for result in results:
+                preferences.append({
+                    "preference_title": result["preference_title"],
+                    "preference_content": result["preference_content"],
+                    "similarity_score": result["score"]
+                })
+            return preferences
+
+        except Exception as e:
+            print(f"Error querying user preferences: {str(e)}")
+            raise RuntimeError(f"Failed to query user preferences: {str(e)}")
+        
+class DeleteUserPreferenceTool(BaseTool):
+    name: str = "delete_user_preference"
+    description: str = "Deletes user preferences from MongoDB. Supports both exact and semantic search."
+
+    db: Any = Field(default="rag_database")
+    user_id: str = Field(default_factory=lambda: "")
+    collection_name: str = Field(default_factory=lambda: "user_preferences")
+
+    def __init__(self, db: Any, user_id: str, collection_name: str = "user_preferences"):
+        super().__init__(db=db, user_id=user_id, collection_name=collection_name)
+
+    def _run(self, preference_title: str = None) -> str:
+        try:
+            # Step 1: Check if any preferences exist for the user
+            if not self.has_preferences():
+                return "No preferences found for the user to delete."
+
+            # Step 2: Otherwise, proceed with semantic deletion
+            return self.delete_semantic_preference(preference_title)
+
+        except Exception as e:
+            return f"Error processing request: {str(e)}"
+
+    def has_preferences(self) -> bool:
+        """
+        Checks if there are any preferences for the user in the database.
+        Returns True if preferences exist, otherwise False.
+        """
+        try:
+            preference_count = self.db[self.collection_name].count_documents({"user_id": self.user_id})
+            print(f"Preference count for user '{self.user_id}': {preference_count}")
+            return preference_count > 0
+        except Exception as e:
+            print(f"Error checking user preferences: {str(e)}")
+            raise RuntimeError(f"Failed to check user preferences: {str(e)}")
+
+
+    def delete_semantic_preference(self, query: str) -> str:
+        """
+        Deletes a user preference based on semantic similarity search.
+        """
+        try:
+            # Step 1: Generate an embedding for the user query
+            query_embedding = get_embedding(query)
+            
+            # Step 2: Search for the most similar preference using `$vectorSearch`
             results = list(self.db[self.collection_name].aggregate([
                 {
                     "$vectorSearch": {
@@ -211,65 +318,26 @@ class FetchUserPreferenceTool(BaseTool):
                 }
             ]))
             
-            print(results)
-                        
-            # Parse and return the results
-            preferences = []
-            for result in results:
-                print(result)
-                preferences.append({
-                    "preference_title": result["preference_title"],
-                    "preference_content": result["preference_content"],
-                    "similarity_score": result["score"]
-                })
-            return preferences
-        
-        except Exception as e:
-            print(f"Error querying user preferences: {str(e)}")
-            raise RuntimeError(f"Failed to query user preferences: {str(e)}")
-        
-class DeleteUserPreferenceTool(BaseTool):
-    name: str = "delete_user_preference"
-    description: str = "Deletes user preferences from MongoDB using semantic search."
+            if not results:
+                return "No preferences found matching the query."
 
-    db: Any = Field(default=None)
-    user_id: str = Field(default_factory=lambda: "")
-    collection_name: str = Field(default_factory=lambda: "user_preferences")
-
-    def __init__(self, db: Any, user_id: str, collection_name: str = "user_preferences"):
-        super().__init__(db=db, user_id=user_id, collection_name=collection_name)
-
-    def _run(self, preference_title: str = None) -> str:
-        try:
-            return self.delete_preference(preference_title)
-        except Exception as e:
-            return f"Error processing request: {str(e)}"
-
-    def delete_preference(self, preference_title: str) -> str:
-        try:
-            print(f"Attempting to delete preference. Title: {preference_title}")
-            print(f"User ID: {self.user_id}, Collection name: {self.collection_name}")
+            # Step 3: Delete the top result
+            top_result = results[0]
+            print(f"Top result for deletion: {top_result}")
             
             filter_conditions = {
                 "user_id": self.user_id,
-                "preference_title": preference_title
+                "preference_title": top_result["preference_title"]
             }
 
-            print(f"Filter conditions: {filter_conditions}")
-            
-            result = self.db[self.collection_name].delete_many(filter_conditions)
-            print(f"Delete operation result: {result.deleted_count} document(s) deleted")
-            
-            deleted_count = result.deleted_count
-
-            if deleted_count > 0:
-                return f"Successfully deleted {deleted_count} preference(s)."
+            result = self.db[self.collection_name].delete_one(filter_conditions)
+            if result.deleted_count > 0:
+                return f"Successfully deleted preference: '{top_result['preference_title']}' - {top_result['preference_content']}."
             else:
-                return "No matching preferences found to delete."
-
+                return "Failed to delete the matched preference."
         except Exception as e:
-            print(f"Error occurred: {str(e)}")
+            print(f"Error during semantic deletion: {str(e)}")
             return f"Error deleting preference: {str(e)}"
 
     async def _arun(self, *args, **kwargs):
-        raise NotImplementedError("UserPreferenceTool does not support async operations")
+        raise NotImplementedError("DeleteUserPreferenceTool does not support async operations")

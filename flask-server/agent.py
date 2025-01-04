@@ -83,21 +83,6 @@ def run():
     calendar_id = data["calendar_id"]
     user_timezone = data.get("timezone", "UTC")
     user_tier = data.get("tier")
-    result = False
-    
-    print("tier", user_tier)
-    
-    if user_tier != "premium":
-        try:
-            check_stripe=stripe.Customer.list(email=user_email)
-            print(check_stripe, db_test['users'])
-            user_tier = "premium" if check_stripe.data else "free"
-            result = True if check_stripe.data else False
-            db_test['users'].update_one({"email": user_email}, {"$set": {"tier": user_tier}})
-            print("Tier updated successfully!")
-        
-        except Exception as e:
-            print("Error updating tier:", e)
         
     timezone = pytz.timezone(user_timezone)
     output = start_agent(user_input, user_email, calendar_id, timezone, persistent_memory, user_tier)

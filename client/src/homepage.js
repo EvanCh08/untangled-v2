@@ -161,9 +161,6 @@ export default function Home() {
         let finalName;
         let finalPhoto;
 
-        console.log(data, "this is data")
-        console.log("User tier: ", data.tier)
-
         if (data.name === data.newName) {
           finalName = data.name;
         } else {
@@ -752,7 +749,6 @@ export default function Home() {
               <Link to={{ pathname: "/privacy" }}>
                 <text>Privacy</text>
               </Link>
-  
               <text className="">© 2024 Untangled AI. All rights reserved.</text>
             </div>
             )

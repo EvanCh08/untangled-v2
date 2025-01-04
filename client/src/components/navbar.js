@@ -115,6 +115,9 @@ export default function NavBar({
             tier: data.tier
           })
         );
+
+        setIsFreePlan(data.tier !== "premium");
+
       } catch (error) {
         console.error("Failed to fetch user info:", error);
       }
@@ -299,15 +302,15 @@ export default function NavBar({
                   </div>
                 )}
 
-                {isOpen && (
+{isOpen && (
                   <div className="w-[150px] flex flex-col h-fit">
                     <span className="text-sm font-semibold text-gray-400">
                       {name}
                     </span>
-                    <span className="text-sm font-semibold text-blueNav">
-                      {tier.charAt(0).toUpperCase() + tier.slice(1)} Plan
-                    </span>
-                    {isFreePlan && (
+                  
+                    {isFreePlan ? (
+                      <span className="text-sm font-semibold text-blueNav">
+                        Free Plan
                       <button
                         onClick={() =>
                           window.open(
@@ -319,6 +322,11 @@ export default function NavBar({
                       >
                         Upgrade to Ethan+
                       </button>
+                      </span>
+                    ) : (
+                      <span className="text-sm font-semibold text-blueNav">
+                        Ethan+
+                      </span>
                     )}
                   </div>
                 )}
@@ -564,22 +572,26 @@ export default function NavBar({
                 <span className="text-sm font-semibold text-gray-400">
                   {name}
                 </span>
-                <span className="text-sm font-semibold text-blueNav">
-                  {tier.charAt(0).toUpperCase() + tier.slice(1)} Plan
-                </span>
-                {isFreePlan && (
-                  <button
-                    onClick={() =>
-                      window.open(
-                        "https://blog.untangled-ai.com/#ethanplus",
-                        "_blank"
-                      )
-                    }
-                    className="text-xs font-semibold bg-blueNav text-white py-1 mt-1 max-w-[130px] rounded"
-                  >
-                    Upgrade to Ethan+
-                  </button>
-                )}
+                {isFreePlan ? (
+                      <span className="text-sm font-semibold text-blueNav mb-1">
+                        Free Plan
+                      <button
+                        onClick={() =>
+                          window.open(
+                            "https://blog.untangled-ai.com/#ethanplus",
+                            "_blank"
+                          )
+                        }
+                        className="text-xs font-semibold bg-blueNav text-white py-1 mt-1 max-w-[130px] rounded"
+                      >
+                        Upgrade to Ethan+
+                      </button>
+                      </span>
+                    ) : (
+                      <span className="text-sm font-semibold text-blueNav">
+                        Ethan+
+                      </span>
+                    )}
               </div>
             )}
           </div>
@@ -588,7 +600,7 @@ export default function NavBar({
         {isOpen && (
           <div className="px-[20px]">
             {" "}
-            <div className="bg-black opacity-40 w-full h-[1px] mt-5 "></div>
+            <div className="bg-black opacity-40 w-full h-[1px] mt-1 "></div>
           </div>
         )}
 
