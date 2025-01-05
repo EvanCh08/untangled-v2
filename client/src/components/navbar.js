@@ -582,7 +582,7 @@ export default function NavBar({
                             "_blank"
                           )
                         }
-                        className="text-xs font-semibold bg-blueNav text-white py-1 mt-1 max-w-[130px] rounded"
+                        className="text-xs font-semibold bg-blueNav text-white py-1 mt-1 max-w-[140px] rounded"
                       >
                         Upgrade to Ethan+
                       </button>
