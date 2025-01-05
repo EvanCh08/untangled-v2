@@ -38,16 +38,16 @@ export default function NavBar({
   );
 
   const handleLogout = async () => {
-    console.log("confirmation here 1");
+    // console.log("confirmation here 1");
     const confirmation = window.confirm("Are you sure you want to log out?");
-    console.log(confirmation, "confirmation here 2");
+    // console.log(confirmation, "confirmation here 2");
     if (!confirmation) {
       return; // Abort logout if user cancels
     }
 
     const logoutUrl =
     process.env.REACT_APP_LOGOUT_URL; /*|| "http://localhost:3001/logout"*/
-    console.log("Logout URL:", logoutUrl);
+    // console.log("Logout URL:", logoutUrl);
 
     if (!logoutUrl) {
       console.error("Logout URL is not defined!");
@@ -65,7 +65,7 @@ export default function NavBar({
 
       // Refresh the page almost immediately after sending the request
       setTimeout(() => {
-        console.log("Logout successful, reloading page...");
+        // console.log("Logout successful, reloading page...");
         const loginPage = process.env.REACT_APP_MAIN_URL /*|| "http://localhost:3000"*/;
         window.location.href = loginPage;
       }, 100); // Adjust the timeout as needed
@@ -87,7 +87,7 @@ export default function NavBar({
         let finalName;
         let finalPhoto;
 
-        console.log("User tier: ", data.tier)
+        // console.log("User tier: ", data.tier)
 
         if (data.name === data.newName) {
           finalName = data.name;
@@ -130,7 +130,7 @@ export default function NavBar({
   }, [dispatch]);
 
   useEffect(() => {
-    console.log("testing this is from navbar")
+    // console.log("testing this is from navbar")
     // Update isFreePlan based on the latest tier
     setIsFreePlan(tier !== "premium");
   }, [tier]);
