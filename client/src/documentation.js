@@ -117,7 +117,7 @@ export default function Documentation() {
                 <p>
                   You can give us feedback by submitting a form on our website{" "}
                   <a
-                    href="https://untangled-ai.carrd.co/"
+                    href="https://blog.untangled-ai.com/#contact-us"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-500"
