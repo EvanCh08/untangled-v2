@@ -231,7 +231,7 @@ async function main() {
               newName: me.data.names[0].displayName,
               newPhoto: me.data.photos[0].url,
               calendarId: primaryCalendar.id,
-              tier: 'free',// Assuming you set this later or modify it
+              tier: '',// Assuming you set this later or modify it
             });
 
             redirectUrl = process.env.REACT_APP_USER_INFO_URL /*|| "http://localhost:3000/userinfo"*/;
