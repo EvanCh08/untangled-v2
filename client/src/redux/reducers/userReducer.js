@@ -34,7 +34,7 @@ const userSlice = createSlice({
     updateDataById: (state, action) => { //for update the data
       const { id, newData } = action.payload;
       const index = state.data.findIndex((item) => item.id === id); // Corrected to reference state.data
-      console.log(id)
+      // console.log(id)
       if (index !== -1) {
         state.data[index] = { ...state.data[index], ...newData };
       }
@@ -48,8 +48,8 @@ const userSlice = createSlice({
     setTypingEffect: (state, action) => {
       const { id, showTypingEffect } = action.payload;
       const index = state.data.findIndex((item) => item.id === id); // Corrected to reference state.data
-      console.log(showTypingEffect)
-      console.log(id)
+      // console.log(showTypingEffect)
+      // console.log(id)
       if (index !== -1) {
         state.data[index].showTypingEffect = showTypingEffect;
       }
