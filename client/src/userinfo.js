@@ -145,7 +145,7 @@ export default function UserInfo() {
         }
       );
       alert("You have sucessfully updated your profile! Please proceed to choosing plans if you have not done so!");
-      window.location.href = "http://localhost:3000/freemium";
+      window.location.href = process.env.REACT_APP_FREEMIUM_URL;
       console.log(res.data.message);
       // Redirect to the specified URL
     } catch (error) {
