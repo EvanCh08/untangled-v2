@@ -57,23 +57,6 @@ client = connect_to_mongo()
 db_rag = client["rag_database"]
 db_test = client["test"]
 
-# @app.route("/check-tier", methods=["POST"])
-# def tiercheck():
-#     data = request.get_json()
-#     user_email = data["user_email"]
-#     user_tier = data.get("tier")
-#     result = False
-
-#     if user_tier != "premium":
-#         try:
-#             check_stripe = stripe.Customer.list(email=user_email)
-#             print(check_stripe, db_test['users'])
-#             result = True if check_stripe.data else False
-#         except Exception as e:
-#             print("Error updating tier:", e)
-
-#     return jsonify({"result": result})
-
 @app.route("/agent", methods=["POST"])
 def run():
     data = request.get_json()
@@ -85,7 +68,7 @@ def run():
         
     timezone = pytz.timezone(user_timezone)
     output = start_agent(user_input, user_email, calendar_id, timezone, persistent_memory, user_tier)
-    output["checkTier"] = result
+    
     return jsonify(output)
 
 def run_agent_executor(user_email, user_input, calendar_id, user_timezone, memory, response_container, user_tier):
@@ -211,5 +194,5 @@ def start_agent(input_data, user_email, calendar_id, timezone, memory, user_tier
     agent_thread.join()
     return response_container
 
-if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+# if __name__ == "__main__":
+#     app.run(debug=True, port=5001)
