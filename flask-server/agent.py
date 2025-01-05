@@ -143,6 +143,8 @@ def run_agent_executor(user_email, user_input, calendar_id, user_timezone, memor
             leave the event at the originally requested time. 
             Additionally, remember to add a spacing after every bullet point in your final output.
 
+            If user asks to store a contact or preference, but does not have access to the tools [rag tools] to do so due to being on the free tier, tell them that the feature is only available on Ethan+.
+
 
             NEVER EVER include the event ID.
             """
