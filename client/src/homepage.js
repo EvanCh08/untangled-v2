@@ -57,7 +57,7 @@ export default function Home() {
 
     checkIfScrollable();
     window.addEventListener("resize", checkIfScrollable);
-    console.log(isScrollable, "isScrollable")
+    // console.log(isScrollable, "isScrollable")
     return () => {
       window.removeEventListener("resize", checkIfScrollable);
     };
@@ -221,7 +221,7 @@ export default function Home() {
     const eventMatches = response.match(
       /\d+\.\s.+\sat\s\d{1,2}:\d{2}\s[APM]{2}/g
     );
-    console.log(eventMatches);
+    // console.log(eventMatches);
   };
 
   useEffect(() => {
@@ -233,7 +233,7 @@ export default function Home() {
   
 
   const sendUserInput = async () => {
-    console.log(userInput, " this is the real user input");
+    // console.log(userInput, " this is the real user input");
     const id = uuidv4();
 
     dispatch(setDisplayInput(false));
@@ -242,7 +242,7 @@ export default function Home() {
     const initialResponse = "Loading...";
     const currentInput = userInput; // Capture the current value of userInput
 
-    console.log(currentInput, "this is current input");
+    // console.log(currentInput, "this is current input");
 
     dispatch(setUserInput(""));
 
@@ -281,9 +281,9 @@ export default function Home() {
         let isDeleteSchedule;
         let isUpdateSchedule;
 
-        console.log(agentData.eventDetails, "This is session from homepage");
+        // console.log(agentData.eventDetails, "This is session from homepage");
         const output = agentData.checkTier
-        console.log("Output: ", output)
+        // console.log("Output: ", output)
 
         if (output) {
           setTriggerFetch(!triggerFetch)
@@ -392,7 +392,7 @@ export default function Home() {
   };
 
   const handleTypingComplete = (interactionId) => {
-    console.log("onComplete function called");
+    // console.log("onComplete function called");
 
     setFirstTypingComplete(false);
 
@@ -415,7 +415,7 @@ export default function Home() {
       const matches = end_time.split(" ");
       real_end_time = matches[0];
 
-      console.log(real_end_time, "this is real end time");
+      // console.log(real_end_time, "this is real end time");
 
       // Create a dictionary for the event
       return {
@@ -435,7 +435,7 @@ export default function Home() {
     const events = [];
 
     while ((match = regex.exec(text)) !== null) {
-      console.log(match, "From extractEventDetails");
+      // console.log(match, "From extractEventDetails");
       events.push({
         name: match[1].trim(),
         time: match[2].trim(),
@@ -509,7 +509,7 @@ export default function Home() {
         if (data.isAuthenticated === false) {
           window.location.href = process.env.REACT_APP_MAIN_URL /*|| "http://localhost:3000/"*/
         }
-        console.log(`hello\nworld`);
+        // console.log(`hello\nworld`);
       } catch (error) {
         console.error("Error checking authentication status:", error);
         dispatch(setIsAuthenticated(false));
